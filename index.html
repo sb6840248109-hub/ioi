@@ -251,9 +251,12 @@
   const bgMusic = document.getElementById('bgMusic');
 
   function toggleCard() {
-    card.classList.toggle('open');
-    if (card.classList.contains('open')) {
+    const isOpen = card.classList.toggle('open');
+    if (isOpen) {
+      try{ bgMusic.volume = 1 }catch(e){}
       bgMusic.play().catch(() => {});
+    } else {
+      try{ fadeOutAudio(900) }catch(e){}
     }
   }
 
@@ -277,6 +280,28 @@
   }
 
   createParticles();
+
+  // Fade-out helper for background audio
+  function fadeOutAudio(duration = 800) {
+    const audio = document.getElementById('bgMusic');
+    if (!audio) return;
+    try {
+      const startVol = isFinite(audio.volume) ? audio.volume : 1;
+      const stepTime = 50;
+      const steps = Math.max(1, Math.floor(duration / stepTime));
+      const step = startVol / steps;
+      let i = 0;
+      const iv = setInterval(() => {
+        i++;
+        audio.volume = Math.max(0, audio.volume - step);
+        if (i >= steps || audio.volume <= 0.01) {
+          try { audio.pause(); audio.currentTime = 0; } catch(e){}
+          audio.volume = startVol;
+          clearInterval(iv);
+        }
+      }, stepTime);
+    } catch (e) { /* silent */ }
+  }
 </script>
 
 </body>
